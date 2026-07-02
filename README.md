@@ -1,6 +1,6 @@
 # My C++ Practice Lab 🚀
 
-Welcome to my personal workspace! This repository serves as a digital diary and portfolio of my journey learning C++ programming from scratch. 
+This repository serves as a digital diary and portfolio of my journey learning C++ programming from scratch. 
 
 ---
 
@@ -15,9 +15,10 @@ Welcome to my personal workspace! This repository serves as a digital diary and 
 ## 📅 Progress Tracker & Syllabus
 Here is how my learning files are structured chronologically:
 
-* **`01.cpp` to `05.cpp`** — Core Basics (Variables, data types, and user input/output)
-* **`06.cpp` to `12.cpp`** — Control Flow (If/else conditions and looping structures)
-* **`13.cpp` to `17.cpp`** — Advanced Basics (Functions, scope, and arrays)
+* **`learning_1_basics.cpp` to `learning_5_functions.cpp`** — Core basics(variables, conditionals, loops and functions)
+* **`learning_6_challange_functions.cpp` to `learning_10_vec_challange.cpp`** — Understood functions, arrays and vectors.
+* **`learning_11_pointers_memaddress.cpp` to `learning_15_dma_exercise2.cpp`** — Pointers and memory addresses.
+**`learning_16_oop.cpp` And onwards —Object-Oriented programming.
 
 ---
 
@@ -34,7 +35,7 @@ g++ 01.cpp -o program
 
 ---
 
-## 🧠 What I'm Learning Next
-- Mastering multi-dimensional arrays
-- Understanding pointers and memory management
-- Getting started with Object-Oriented Programming (OOP)
+## 🧠 Things that i have achieved:
+- Understood pointers and memory address
+- Understood Object-Oriented Programming (OOP)
+- Dynamic allotment of memory
