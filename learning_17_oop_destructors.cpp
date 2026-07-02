@@ -34,7 +34,7 @@ int main(){
     std::cout<<"ended rendering\n";
 
 
-    //
+    //learning_17_oop_destructor_exercise.cpp
 
     return 0;
 }
