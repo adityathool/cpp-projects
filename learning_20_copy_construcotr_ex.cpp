@@ -9,7 +9,7 @@ public:
     // 1. Constructor: allocate array and fill with val
     IntArray(int sz, int val = 0){
         size = sz;
-        this->val =val;
+        
         data = new int[size];
         for (int i = 0; i<size; i++){
             data[i] = val;
@@ -24,7 +24,7 @@ public:
     // // 3. Deep copy constructor (you write this)
     IntArray(const IntArray& other){
         size = other.size;  
-        val = other.val; 
+        
         data = new int[other.size];
         for (size_t i = 0; i<other.size; ++i){
             data[i] = other.data[i];
@@ -49,5 +49,6 @@ int main(){
     IntArray arr(9, 9);
     IntArray arr2 = arr;
     arr2.print();
+    //next exercise in  learning_21_copy_constructor_ex2.cpp
     return 0;
 }
