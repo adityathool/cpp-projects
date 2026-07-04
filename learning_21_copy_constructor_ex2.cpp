@@ -4,7 +4,7 @@
 class IntArray {
     int* data;    // pointer to the heap array
     int size;   // number of elements
-    int val;
+    
 public:
     // 1. Constructor: allocate array and fill with val
     IntArray(int sz, int val = 0){
