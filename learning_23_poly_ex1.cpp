@@ -49,6 +49,6 @@ int main(){
     printarea(r);
     Circle c(10);
     printarea(c);
-
+    // next exercise learning_24_poly_ex2.cpp
     return 0;
 }

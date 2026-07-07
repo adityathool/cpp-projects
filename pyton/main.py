@@ -1,7 +1,6 @@
 import pygame
 import random
 import os
-
 pygame.init()
 
 #  1. Get the precise directory of this active script file
@@ -289,10 +288,12 @@ while game:
     
 
     
+    
 
-    if base.is_colliding(bird):
+    if base.is_colliding(bird) or birdy >= hei-130:
         gameover = True
         birdy = hei-130-20
+        
 
 
     x1 -= bg_speed

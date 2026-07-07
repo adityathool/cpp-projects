@@ -1,4 +1,5 @@
 import pygame
+import random
 pygame.init()
 size = 40
 wid = 20*size
@@ -9,37 +10,43 @@ player_x = 100
 player_y = hei/2-player_sizey/2
 y_vel = 0
 
+
+class Invador():
+    def __init__(self, health):
+        self.x = 0
+        self.y = 0
+        self.health = health
+        
+    def spawn(self,x,y, collider_list):
+        self.x = x
+        self.y = y
+        self.ent = pygame.draw.rect(screen, (255,100,0), [self.x, self.y, 40,40])
+        for obj in collider_list:
+            if self.ent.colliderect(obj.bullet):
+                collider_list.remove(obj)
+                self.health -= 10
+
+        
+        
+
+def draw_rotated_ellipse(surface, color, x, y, width, height, angle):
+    ellipse_surf = pygame.Surface((width, height), pygame.SRCALPHA)
+    pygame.draw.ellipse(ellipse_surf, color, (0, 0, width, height))
+    rotated_surf = pygame.transform.rotozoom(ellipse_surf, angle,1)
+    rotated_rect = rotated_surf.get_rect(center=(x, y))
+    surface.blit(rotated_surf, rotated_rect.topleft)
+
 class Bullet():
     def __init__(self, x,y):
         self.x = x
         self.y = y
-        
         self.bullet = None
     def shoot(self, speedx, speedy):
         self.x += speedx
         self.y += speedy
-        
-        
-        self.bullet = pygame.draw.ellipse(screen, (0,255,0), [self.x-10+30, self.y+player_sizey/2, 10,10])
-        
-        
-        
-class Invador():
-    def __init__(self, x,y, health):
-        self.x = x
-        self.y = y
-        self.health = health
-        self.ent = None
-
-    def spawn(self, x,y):
-        self.x -= 0.01
-        self.x = x
-        self.y = y
-        self.ent = pygame.draw.rect(screen, (255,100,0), [self.x, self.y, 40,40])
-
-    def is_colliding(self,collider):
-        return self.ent.colliderect(collider)
-
+        # self.bullet = draw_rotated_ellipse(screen, (0,255,0), self.x-10+30, self.y+player_sizey/2, 15,3,-speedy*10)
+        # self.x-10+30, self.y+player_sizey/2, 15,3
+        self.bullet = pygame.draw.rect(screen, (0,255,0), [self.x-10+30, self.y+player_sizey/2, 15,3])
 
 bullet = Bullet(player_x, player_y)
 bulletx = []
@@ -48,12 +55,16 @@ bulletj = []
 
 invaders = []
 
+
 shooting = False
 booster1 = False
 booster2 = False 
 game = True
+w= 0
 clock = pygame.time.Clock()
 timer = 0
+deleted_inv = -1
+
 while game:
     clock.tick(60)
     screen.fill((0,0,0))
@@ -76,11 +87,12 @@ while game:
             if event.key == pygame.K_SPACE:
                 shooting = False
 
-    
+    if not shooting:
+        t=9
     if shooting:
         
         timer+= 1
-        if timer>= 7:
+        if timer>= 9:
             timer = 0
             
             bulletx.append(Bullet(player_x, player_y))
@@ -91,45 +103,30 @@ while game:
                 print("booster 1 and not 2")
             elif booster2 and booster1:
                 bulletx.append(Bullet(player_x, player_y))
+                bullety.append(Bullet(player_x, player_y))
+                bulletj.append(Bullet(player_x, player_y))
                 print("booster 1 and 2")
-
-
-
-
-
-            
+        
     for b in bulletx[:]:
-        b.shoot(10, 0)
+        b.shoot(15, 0)
         if b.x >= wid:
             bulletx.remove(b)
-        
-        for inv in invaders[:]:
-            inv.spawn(inv.x, inv.y)
-            if inv.is_colliding(b.bullet):
-                invaders.remove(inv)
 
     for by in bullety[:]:
-        by.shoot(10,4)
+        by.shoot(15,1)
         if by.x >= wid:
             bullety.remove(by)
+
     for bj in bulletj[:]:
-        bj.shoot(10,-4)
+        bj.shoot(15,-1)
         if bj.x >= wid:
             bulletj.remove(bj)
 
-    for i in range(0,7):
-        invaders.append(Invador(wid- 100, 10+50*i, 100))
-    
-        
-
-    
-        
-        
-        
-        
-
+    for j in range(0,7):
+        for i in range(0,2):
+            invaders.append(Invador(100))
+            invaders[i].spawn((wid-100)-50*i, 10+50*j, bulletx)
             
-    
     
 
     player = pygame.draw.rect(screen, (0,100,0), [player_x, player_y, 60, player_sizey])
@@ -137,7 +134,6 @@ while game:
 
     
 
-    
     pygame.display.update()
     pygame.display.flip()
 pygame.quit()
