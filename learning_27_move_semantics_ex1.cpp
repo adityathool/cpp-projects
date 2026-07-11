@@ -92,9 +92,9 @@ class IntArray{
 int main(){
     IntArray a(4,5,5);
     IntArray b = std::move(a);
-    a.print();
-    a.popback();
-    a.print();
+    b.print();
+    b.popback();
+    b.print();
 
     return 0;
 }
