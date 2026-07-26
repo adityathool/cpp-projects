@@ -19,6 +19,7 @@ y_vel = 0
 GAMESPEED = 14
 bgspawn = hei-1
 bgs = []
+canvasList = []
 # for i in range(0, 3):
 #     bgs.append(Bg((i*hei)-size*4, 0))
 boosters = [False,#2ray
@@ -190,11 +191,11 @@ class Bullet():
         self.sprite = pygame.Rect(self.x-10+70, (self.y+player_sizey/2)+25, 100,30)
 
 class Invador():
-    def __init__(self,x,y, health):
+    def __init__(self,x,y, health, speedx = 0, speedy = 0):
         self.pi = 0
         self.x = x
-        self.xspeed = random.randint(int(GAMESPEED+GAMESPEED*(66/100)),int(GAMESPEED*2+GAMESPEED/3))
-        self.y = 90*random.randint(0, int(hei/100))
+        self.xspeed = 9#random.randint(int(GAMESPEED+GAMESPEED*(66/100)),int(GAMESPEED*2+GAMESPEED/3))
+        self.y = y#*random.randint(0, int(hei/100))
         self.health = health
         if player.booster_status>=1:
             self.health += 300
@@ -206,11 +207,18 @@ class Invador():
         self.image = enemies[random.randint(0, len(enemies)-1)]
         self.destroy_time = 0
         self.particle_time = 0
-        self.is_sin = random.randint(0,1)
+        self.is_sin = random.randint(0,0)
         self.exh = []
         self.r = random.randint(1,10)
         self.health_indicator = self.health
-        
+
+        # move initialisation\
+    def move(self,speedx, speedy):
+        self.x += speedx
+        self.y += speedy
+    
+         
+
     def spawn(self,y, memberlist, memberobj,bulletarr):
         self.x -= self.xspeed
         self.y += y
@@ -232,9 +240,9 @@ class Invador():
         if self.health<=0:
             self.xspeed = 0
             self.image = pygame.transform.scale(self.image, (10,10))
-            particles.append(Dparticle(self.x+45, self.y+30, 10,10,random.randint(-1,1),random.randint(-1,1)))
+            canvasList.append(Dparticle(self.x+45, self.y+30, 10,10,random.randint(-1,1),random.randint(-1,1)))
             self.particle_time +=1
-            if self.particle_time>= 30:
+            if self.particle_time>= 10:
                 particles.pop()
             self.destroy_time +=GAMESPEED/3
             if self.destroy_time>=40:
@@ -246,7 +254,7 @@ class Invador():
                     memberlist.remove(memberobj) 
                     
                 except Exception  as e:...
-        if difficulty =="bring em on" or difficulty =="fry their flesh" or player.booster_status>=4:
+        if difficulty =="bring em on" or difficulty =="fry their flesh":
             if self.timer >= self.time:
                 self.timer = 0
                 if self.health >0:
@@ -352,6 +360,33 @@ class Player:
                     
         
 player = Player()
+random_wave = ["diagonal", "v shape", "spiral"]
+wave_index = 0
+def waveSpawning(wave_no,wave_type):
+     
+    if wave_type == "diagonal":
+        for j in range(1, wave_no+1):
+            for i in range(0, 10):
+                invaders.append(Invador(wid+50*i+140*j, 100+70*i, 200))
+        
+    elif wave_type == "v shape":
+        for l in range(1, wave_no+1):
+            for i in range(0, 3):
+                invaders.append(Invador((wid+50*i)+140*l, 100+80*i, 200))
+            for k in range(-3, 1):
+                invaders.append(Invador((wid-50*k)+140*l, 100+80*(i+(i+k)+2), 200))
+    elif wave_type == "spiral":
+        x = -5
+        y = 5
+        r = random.randint(3,6)
+        for m in range(1,12):
+            sinx = x+math.sin(math.pi*m/6)*r
+            cosy = y+math.cos(math.pi*m/6)*r
+            invaders.append(Invador(wid-sinx*70, 100+cosy*70, 200))
+
+    
+        
+        
 
 
 
@@ -366,12 +401,13 @@ while game:
     if bgspawn >= hei:
         bgspawn = 0
         for i in range(0,4):
-            bgs.append(Bg(i*hei, 0))
-    for b in bgs[:]:
-        b.render(GAMESPEED/3)
-        if b.x <= -hei:
-            bgs.remove(b)
-    blink +=GAMESPEED/3
+            canvasList.append(Bg(i*hei, 0))
+    # for b in canvasList[:]:
+    #     if isinstance(b, Bg):
+    #         b.render(GAMESPEED/3)
+    #         if b.x <= -hei:
+    #             canvasList.remove(b)
+    blink +=GAMESPEED/3          
     if blink >= 100:
         blink = 0
     for i in range(0, wid):
@@ -397,10 +433,11 @@ while game:
             slowstars.remove(s)
         if len(stars)>=700:
             stars.pop()
-    for p in particles[:]:
+    for p in canvasList[:]:
+            if isinstance(p, Dparticle):
                 p.render()
                 if p.x<=0:
-                    particles.remove(p)
+                    canvasList.remove(p)
     mousepos = pygame.mouse.get_pos()
     if game_state == "difficulty":
         GAMESPEED = 6
@@ -471,7 +508,7 @@ while game:
             exhaust.append(particle(player_x+10, player.y+60, GAMESPEED*2,1))
         for p in exhaust[:]:
                 p.render()
-                if p.x <= 20:
+                if p.x <= 10:
                     exhaust.remove(p)
         render_text("SCORE: "+str(score),10, 10, (255,255,255), 15)
         render_text("KILLS: "+str(kills),10, 40, (255,255,255), 15)
@@ -483,7 +520,7 @@ while game:
             if player_health >=1:
                 render_text("LIVES: "+healthbar[abs(player_health)],wid-250, 40, (255,255,255), 25)
         if difficulty == "bring em on" or difficulty == "dont hurt me":
-            spawnrate =50
+            spawnrate =400
         if difficulty == "fry their flesh":
             spawnrate = 30
         score = score + 1
@@ -500,9 +537,11 @@ while game:
         #     if b.x >= wid:
         #         bulletx.remove(b)
         spawn_time +=GAMESPEED/3
-        if spawn_time>=spawnrate:
+        if spawn_time>=spawnrate:      
             spawn_time = 0
-            invaders.append(Invador(wid, 2, 200))
+            # invaders.append(Invador(wid, 2, 200))
+            type = random_wave[random.randint(0, len(random_wave)-1)]
+            waveSpawning(2, type)
         if cooldown:
             cooldown_timer += GAMESPEED/3
             if cooldown_timer >= 100:
@@ -531,16 +570,19 @@ while game:
                         cooldown = True
                     player_health -= 1
         player_y+= y_vel
-        for i in invaders[:]:
-            i.spawn(0, invaders, i, enemy_bullet  )
-            if i not in invaders:
-                kills +=1
-            if i.x<=-50:
-                invaders.remove(i)
-            if not cooldown:
-                if i.ent.colliderect(player.entity):
-                    player_health -=1
-                    cooldown = True 
+        if invaders:
+            try:
+                for i in invaders[:]:
+                    i.spawn(0, invaders, i, enemy_bullet  )
+                    if i not in invaders:
+                        kills +=1         
+                    if i.x<=-50:
+                        invaders.remove(i)
+                    if not cooldown:
+                        if i.ent.colliderect(player.entity):
+                            player_health -=1
+                            cooldown = True 
+            except Exception as e:...
         if player_health<= 0:
             player_death_timer +=GAMESPEED/14
             player_x-=GAMESPEED/3
