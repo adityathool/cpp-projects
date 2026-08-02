@@ -1,0 +1,91 @@
+================================================================================
+           C++ MODULE 12: EXCEPTION SAFETY & STRUCTURAL LIFECYCLES
+================================================================================
+
+1. THE TOWER OF PLATES (THE CALL STACK RELATIONSHIP)
+--------------------------------------------------------------------------------
+* Every time a function is invoked, the CPU pushes a new "Stack Frame" (a plate) 
+  onto the Call Stack. This frame holds all local stack variables.
+* Normal Return: When a function ends via 'return' or its closing brace '}', 
+  its plate is cleanly popped off the stack. All local variables on that plate 
+  are instantly destroyed via their automatic destructors.
+* Exceptional Return: When a 'throw' statement fires, normal linear code 
+  execution completely halts. The function aborts its mission immediately.
+
+2. STACK UNWINDING (THE TEARDOWN REALITY)
+--------------------------------------------------------------------------------
+* Definition: The automatic mechanism where the CPU tears down stack frames 
+  one-by-one from the top of the stack downward to find an enclosing 'try' block.
+* The Search Phase:
+  1. The CPU looks at the current active function frame for a 'try' block.
+  2. If not found, it forcefully destroys that stack frame.
+  3. Every fully constructed stack object inside that frame has its destructor 
+     (~T()) executed immediately.
+  4. The CPU steps down to the caller function frame and repeats the question.
+* Fatal Termination: If the unwinding process reaches the bottom plate of the 
+  tower (the main() function) and still fails to find a matching 'try' block, 
+  the runtime halts search operations, calls std::terminate(), and crashes.
+
+3. THE HEAP MEMORY TRAP (WHY RAW POINTERS BLEED)
+--------------------------------------------------------------------------------
+* Hard Rule: Stack unwinding ONLY destroys objects residing directly on the stack.
+* The Leak Vector: 
+    void trap() {
+        int* ptr = new int[100]; // 'ptr' lives on Stack. Array lives on Heap.
+        functionThatThrows();    // Panics!
+        delete[] ptr;            // Bypassed entirely!
+    }
+* Mechanics: During the stack unwind, the local pointer variable 'ptr' is erased 
+  off the stack plate. However, raw heap storage does NOT possess an automatic 
+  destructor. Because 'delete[] ptr' was skipped, that heap memory becomes 
+  unreachable and leaks permanently.
+* The FIX (RAII): Wrap the heap resource inside a local stack object. Because 
+  smart pointers (like std::unique_ptr) reside on the stack, their destructors 
+  are guaranteed to run during stack unwinding, safely purging the heap memory.
+
+4. CATCH-BY-REFERENCE AND OBJECT SLICING
+--------------------------------------------------------------------------------
+* Rule: Never catch exceptions by value: 'catch (std::runtime_error err)'
+* Hazard A (Object Slicing): If you throw a derived object type (e.g., class 
+  DatabaseError : public std::runtime_error) and intercept it by value, the 
+  compiler copies only the base portion into 'err'. All custom error fields 
+  and polymorphic virtual functionalities are stripped away.
+* Hazard B (Performance): Catch-by-value forces a complete duplicate copy 
+  allocation mid-panic, which can trigger additional nested memory allocations.
+* Solution: Always catch by const reference: 'catch (const std::runtime_error& err)'
+
+5. THE 3 INDUSTRY EXCEPTION SAFETY GUARANTEES
+--------------------------------------------------------------------------------
+When writing functions, you must guarantee how the state of your application 
+behaves if an operation hits a panic button.
+
+I. Basic Exception Guarantee:
+   - Promise: No memory resources leak out. All objects remain in a valid, 
+     uncorrupted layout state.
+   - Catch: The data values may be altered or left half-modified from their 
+     original states, requiring a reset, but the app won't crash or bleed memory.
+
+II. Strong Exception Guarantee ("Commit or Rollback"):
+   - Promise: If an operation fails, the data state reverts exactly to how it 
+     was before the call. It either completely succeeds or has zero side effects.
+   - Core Tactic (Copy-and-Swap):
+     1. Make a temporary clone of your object's internal data.
+     2. Perform your risky, throw-prone modifications on the clone.
+     3. If a throw happens, the clone is destroyed cleanly (Basic Guarantee).
+     4. If everything succeeds completely, perform a non-throwing pointer swap 
+        between the original data and the modified clone.
+
+III. No-Throw Guarantee (noexcept):
+   - Promise: The function is architecturally guaranteed to never emit an exception.
+   - If a 'noexcept' function attempts to let an exception escape, the runtime 
+     invokes std::terminate() immediately.
+
+6. PERFORMANCE MECHANICS OF 'noexcept'
+--------------------------------------------------------------------------------
+* Binary Optimization: If a function is marked 'noexcept', the compiler knows 
+  it never needs to unwind it. It completely strips away the internal lookup 
+  tables and binary tracking overhead, shrinking executable footprints.
+* Move Semantics Synergy: Standard library containers (like std::vector) will 
+  refuse to move elements during array resizes if your class's Move Constructor 
+  is not marked 'noexcept'. They will fall back to expensive copy operations 
+  to preserve the Strong Exception Guarantee.
